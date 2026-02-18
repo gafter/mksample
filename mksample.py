@@ -50,7 +50,8 @@ arguments:
 
 SKIP_BASENAME_DIR = "@eaDir"
 MKSAMPLE_SKIP_FILE = ".mksample.skip"
-ZIP_SEP = "!"
+# Private Use character U+E000: unlikely to appear in file names
+ZIP_SEP = "\uE000"
 # Avoid log(0) in Efraimidis-Spirakis
 RANDOM_EPSILON = 2**-1074
 
@@ -85,7 +86,7 @@ def parse_args(argv):
 
 
 def _basename(path):
-    """Last path component. For zip!member use the member part."""
+    """Last path component. For zip_path⟨ZIP_SEP⟩member use the member part."""
     if ZIP_SEP in path:
         path = path.split(ZIP_SEP, 1)[1]
     return os.path.basename(path) or "unnamed"
@@ -129,7 +130,7 @@ def _compile_patterns(patterns, option_name="pattern"):
 
 
 def stage1_collect_candidates(args):
-    """Produce list of (weight, path) where path may be 'zip_path!member' for zip entries."""
+    """Produce list of (weight, path) where path may be 'zip_path' + ZIP_SEP + 'member' for zip entries."""
     exclude_re = _compile_patterns(args.exclude_patterns, "--exclude") if args.exclude_patterns else None
     include_re = _compile_patterns(args.include_patterns, "--include")
     candidates = []
