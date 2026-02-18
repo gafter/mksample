@@ -204,7 +204,7 @@ def test_stage3_creates_mksample_skip(tmp_path):
     m.stage3_produce_sample(selected, str(outdir), False, cmdline)
     skip_file = outdir / m.MKSAMPLE_SKIP_FILE
     assert skip_file.is_file()
-    assert skip_file.read_text() == cmdline
+    assert skip_file.read_text() == cmdline + "\n"
 
 
 def test_stage3_output_layout(tmp_path):
