@@ -212,13 +212,13 @@ def stage2_sample(candidates, n):
 
 def stage3_produce_sample(selected, outputdir, dryrun):
     """Create outputdir and write each selected file (extract from zip or hardlink)."""
+    if os.path.exists(outputdir):
+        sys.stderr.write(f"mksample: output directory already exists: {outputdir}\n")
+        sys.exit(1)
     if dryrun:
         for fn in selected:
             print(fn)
         return
-    if os.path.exists(outputdir):
-        sys.stderr.write(f"mksample: output directory already exists: {outputdir}\n")
-        sys.exit(1)
     os.makedirs(outputdir, exist_ok=False)
     for i, fn in enumerate(selected):
         dn = f"{i // 25:02d}"
