@@ -1,4 +1,4 @@
-# Copyright 2025 The mksample authors. See LICENSE for details.
+# Copyright 2026 The mksample authors. See LICENSE for details.
 
 """Tests for mksample."""
 
