@@ -82,6 +82,31 @@ def test_stage1_include_exclude(tmp_path):
     assert names2 == {"b.txt"}
 
 
+def test_stage1_skip_mksample_skip_dir(tmp_path):
+    (tmp_path / "top.txt").write_text("x")
+    skip_dir = tmp_path / "sample_out"
+    skip_dir.mkdir()
+    (skip_dir / m.MKSAMPLE_SKIP_FILE).touch()
+    (skip_dir / "nested.txt").write_text("y")
+    other = tmp_path / "other"
+    other.mkdir()
+    (other / "other.txt").write_text("z")
+
+    class Args:
+        exclude_patterns = []
+        include_patterns = [".*"]
+        size = True
+        zip = False
+        filenames = [str(tmp_path)]
+
+    args = Args()
+    cands = m.stage1_collect_candidates(args)
+    basenames = {os.path.basename(p) for _, p in cands}
+    assert "top.txt" in basenames
+    assert "other.txt" in basenames
+    assert "nested.txt" not in basenames
+
+
 def test_stage1_skip_dot_and_eadir(tmp_path):
     (tmp_path / "normal").write_text("x")
     (tmp_path / ".hidden").write_text("x")
@@ -168,6 +193,16 @@ def test_stage3_dryrun(capsys, tmp_path):
     lines = [l.strip() for l in out.strip().splitlines()]
     assert len(lines) == 2
     assert not outdir.exists()
+
+
+def test_stage3_creates_mksample_skip(tmp_path):
+    (tmp_path / "one").write_text("1")
+    outdir = tmp_path / "out"
+    selected = [str(tmp_path / "one")]
+    m.stage3_produce_sample(selected, str(outdir), dryrun=False)
+    skip_file = outdir / m.MKSAMPLE_SKIP_FILE
+    assert skip_file.is_file()
+    assert skip_file.read_bytes() == b""
 
 
 def test_stage3_output_layout(tmp_path):
