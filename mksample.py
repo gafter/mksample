@@ -12,6 +12,7 @@ import math
 import os
 import random
 import re
+import shlex
 import sys
 import zipfile
 
@@ -214,7 +215,7 @@ def stage2_sample(candidates, n):
     return selected
 
 
-def stage3_produce_sample(selected, outputdir, dryrun):
+def stage3_produce_sample(selected, outputdir, dryrun, cmdline):
     """Create outputdir and write each selected file (extract from zip or hardlink)."""
     if os.path.exists(outputdir):
         sys.stderr.write(f"mksample: output directory already exists: {outputdir}\n")
@@ -224,7 +225,9 @@ def stage3_produce_sample(selected, outputdir, dryrun):
             print(fn)
         return
     os.makedirs(outputdir, exist_ok=False)
-    open(os.path.join(outputdir, MKSAMPLE_SKIP_FILE), "a").close()
+    skip_path = os.path.join(outputdir, MKSAMPLE_SKIP_FILE)
+    with open(skip_path, "w") as f:
+        f.write(cmdline)
     for i, fn in enumerate(selected):
         dn = f"{i // 25:02d}"
         subdir = os.path.join(outputdir, dn)
@@ -252,13 +255,15 @@ def main():
     if len(sys.argv) <= 1:
         print(HELP_TEXT)
         sys.exit(0)
-    args = parse_args(sys.argv[1:])
+    argv = sys.argv[1:]
+    args = parse_args(argv)
     candidates = stage1_collect_candidates(args)
     if not candidates:
         sys.stderr.write("mksample: no candidates found\n")
         sys.exit(1)
     selected = stage2_sample(candidates, args.count)
-    stage3_produce_sample(selected, args.output, args.dryrun)
+    cmdline = "mksample " + " ".join(shlex.quote(a) for a in argv)
+    stage3_produce_sample(selected, args.output, args.dryrun, cmdline)
 
 
 if __name__ == "__main__":
