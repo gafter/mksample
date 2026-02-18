@@ -175,9 +175,11 @@ def stage1_collect_candidates(args):
             candidates.append((k, path))
         # else: broken symlink, etc. skip
 
+    missing = [fn for fn in args.filenames if not os.path.exists(fn)]
+    if missing:
+        sys.stderr.write(f"mksample: no such file or directory: {', '.join(missing)}\n")
+        sys.exit(1)
     for fn in args.filenames:
-        if not os.path.exists(fn):
-            continue
         visit(os.path.abspath(fn))
 
     return candidates
