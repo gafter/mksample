@@ -110,19 +110,22 @@ def _should_skip_file_basename(basename, exclude_re, include_re):
     return False
 
 
-def _compile_patterns(patterns):
+def _compile_patterns(patterns, option_name="pattern"):
     """Compile list of regex pattern strings to one fullmatch regex."""
     if not patterns:
         return None
-    # Full match: anchor each alternative
-    combined = "|".join(f"(?:{p})" for p in patterns)
-    return re.compile(f"^(?:{combined})$")
+    try:
+        combined = "|".join(f"(?:{p})" for p in patterns)
+        return re.compile(f"^(?:{combined})$")
+    except re.error as e:
+        sys.stderr.write(f"mksample: invalid regular expression for {option_name}: {e}\n")
+        sys.exit(1)
 
 
 def stage1_collect_candidates(args):
     """Produce list of (weight, path) where path may be 'zip_path!member' for zip entries."""
-    exclude_re = _compile_patterns(args.exclude_patterns) if args.exclude_patterns else None
-    include_re = _compile_patterns(args.include_patterns)
+    exclude_re = _compile_patterns(args.exclude_patterns, "--exclude") if args.exclude_patterns else None
+    include_re = _compile_patterns(args.include_patterns, "--include")
     candidates = []
     inside_zip = False
 
