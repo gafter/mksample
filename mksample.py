@@ -227,7 +227,7 @@ def stage3_produce_sample(selected, outputdir, dryrun, cmdline):
     os.makedirs(outputdir, exist_ok=False)
     skip_path = os.path.join(outputdir, MKSAMPLE_SKIP_FILE)
     with open(skip_path, "w") as f:
-        f.write(cmdline)
+        f.write(cmdline + "\n")
     for i, fn in enumerate(selected):
         dn = f"{i // 25:02d}"
         subdir = os.path.join(outputdir, dn)
