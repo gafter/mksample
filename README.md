@@ -66,8 +66,8 @@ mksample filename+ [ arguments ]
 ## Usage and behavior
 
 1. **Stage 1 – Collect candidates**  
-   Each given path is visited. Hidden names (basename starting with `.`) and the special directory name `@eaDir` are skipped. Basenames that match any `--exclude` pattern are skipped. Then:
-   - **Directories** are recursed into (unless excluded).
+   Each given path is visited. Hidden names (basename starting with `.`) and the special directory name `@eaDir` are skipped. Basenames that match any `--exclude` pattern are skipped. A directory that contains a file named `.mksample.skip` is not recursed into (see below). Then:
+   - **Directories** are recursed into (unless excluded or containing `.mksample.skip`).
    - **Zip files** (with `--zip`) are opened and their member paths are considered; nested zips are ignored.
    - **Regular files** whose basename matches at least one `--include` pattern are added to the candidate list with a weight: file size for `--size`, or 1 for `--uniform`.
 
@@ -75,7 +75,7 @@ mksample filename+ [ arguments ]
    Up to `--count` candidates are chosen at random without replacement, with selection probability proportional to the weight. The chosen paths are then shuffled.
 
 3. **Stage 3 – Write sample**  
-   The output directory is created. For each selected file, an output path is built as:
+   The output directory is created and an empty file named `.mksample.skip` is placed inside it so that directory will not be sampled in future runs. For each selected file, an output path is built as:
    - Subdirectory: `00`, `01`, … (25 files per subdir: indices `0..24` → `00`, `25..49` → `01`, etc.).
    - Filename: four-digit index, space, then the file’s basename (e.g. `0000 README.md`).  
    Files on disk are hard-linked into that path when possible; files inside zips are extracted.
@@ -89,3 +89,11 @@ The program exits with a non-zero status and a message on stderr when:
 - **Invalid arguments**: For example `--count` not in 1–2500, or both `--size` and `--uniform` given.
 
 Running `mksample` with no arguments prints usage and option descriptions to stdout.
+
+## Skipping directories with `.mksample.skip`
+
+To prevent a directory (and everything under it) from being included in samples, create an empty file named `.mksample.skip` inside that directory. When mksample visits a directory and finds this file, it skips that directory and does not consider any of its contents as candidates.
+
+This is useful when:
+- You have previous sample output directories under the paths you pass to mksample; they are automatically skipped because mksample creates `.mksample.skip` in each output directory (see Stage 3 above).
+- You want to exclude specific subtrees from sampling without listing them in `--exclude` patterns—for example, by running `touch that/dir/.mksample.skip`.

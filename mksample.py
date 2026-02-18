@@ -49,6 +49,7 @@ arguments:
 """
 
 SKIP_BASENAME_DIR = "@eaDir"
+MKSAMPLE_SKIP_FILE = ".mksample.skip"
 ZIP_SEP = "!"
 # Avoid log(0) in Efraimidis-Spirakis
 RANDOM_EPSILON = 2**-1074
@@ -138,6 +139,8 @@ def stage1_collect_candidates(args):
         if os.path.isdir(path) and ZIP_SEP not in path:
             if _should_skip_traversal(basename, exclude_re):
                 return
+            if os.path.isfile(os.path.join(path, MKSAMPLE_SKIP_FILE)):
+                return
             try:
                 for name in os.listdir(path):
                     visit(os.path.join(path, name))
@@ -220,6 +223,7 @@ def stage3_produce_sample(selected, outputdir, dryrun):
             print(fn)
         return
     os.makedirs(outputdir, exist_ok=False)
+    open(os.path.join(outputdir, MKSAMPLE_SKIP_FILE), "a").close()
     for i, fn in enumerate(selected):
         dn = f"{i // 25:02d}"
         subdir = os.path.join(outputdir, dn)
