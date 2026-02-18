@@ -188,7 +188,8 @@ def test_stage3_dryrun(capsys, tmp_path):
     cands = m.stage1_collect_candidates(args)
     selected = m.stage2_sample(cands, 2)
     outdir = tmp_path / "out"
-    m.stage3_produce_sample(selected, str(outdir), dryrun=True)
+    cmdline = f"mksample --output {outdir} {tmp_path}"
+    m.stage3_produce_sample(selected, str(outdir), True, cmdline)
     out, _ = capsys.readouterr()
     lines = [l.strip() for l in out.strip().splitlines()]
     assert len(lines) == 2
@@ -199,10 +200,11 @@ def test_stage3_creates_mksample_skip(tmp_path):
     (tmp_path / "one").write_text("1")
     outdir = tmp_path / "out"
     selected = [str(tmp_path / "one")]
-    m.stage3_produce_sample(selected, str(outdir), dryrun=False)
+    cmdline = f"mksample --output {outdir} {tmp_path}"
+    m.stage3_produce_sample(selected, str(outdir), False, cmdline)
     skip_file = outdir / m.MKSAMPLE_SKIP_FILE
     assert skip_file.is_file()
-    assert skip_file.read_bytes() == b""
+    assert skip_file.read_text() == cmdline
 
 
 def test_stage3_output_layout(tmp_path):
@@ -210,7 +212,8 @@ def test_stage3_output_layout(tmp_path):
     (tmp_path / "two").write_text("2")
     outdir = tmp_path / "out"
     selected = [str(tmp_path / "one"), str(tmp_path / "two")]
-    m.stage3_produce_sample(selected, str(outdir), dryrun=False)
+    cmdline = f"mksample --output {outdir} {tmp_path}"
+    m.stage3_produce_sample(selected, str(outdir), False, cmdline)
     assert outdir.exists()
     d00 = outdir / "00"
     assert d00.exists()
@@ -228,8 +231,9 @@ def test_stage3_output_dir_exists_fails(tmp_path):
     outdir = tmp_path / "out"
     outdir.mkdir()
     selected = [str(tmp_path / "f")]
+    cmdline = f"mksample --output {outdir} {tmp_path}"
     with pytest.raises(SystemExit):
-        m.stage3_produce_sample(selected, str(outdir), dryrun=False)
+        m.stage3_produce_sample(selected, str(outdir), False, cmdline)
 
 
 def test_zip_candidates(tmp_path):
@@ -259,7 +263,8 @@ def test_zip_extract_in_stage3(tmp_path):
         zf.writestr("inner.txt", "content")
     selected = [str(zippath) + m.ZIP_SEP + "inner.txt"]
     outdir = tmp_path / "out"
-    m.stage3_produce_sample(selected, str(outdir), dryrun=False)
+    cmdline = f"mksample --output {outdir} --zip {zippath}"
+    m.stage3_produce_sample(selected, str(outdir), False, cmdline)
     outfile = outdir / "00" / "0000 inner.txt"
     assert outfile.exists()
     assert outfile.read_text() == "content"
