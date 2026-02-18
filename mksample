@@ -1,0 +1,16 @@
+#!/bin/sh
+# Resolve installation directory (follow symlinks so symlinking the script works)
+SCRIPT="$0"
+while [ -L "$SCRIPT" ]; do
+    INSTALLDIR=$(dirname "$SCRIPT")
+    TARGET=$(readlink "$SCRIPT")
+    case "$TARGET" in
+        /*) SCRIPT="$TARGET" ;;
+        *) SCRIPT="$INSTALLDIR/$TARGET" ;;
+    esac
+done
+INSTALLDIR=$(cd "$(dirname "$SCRIPT")" && pwd)
+
+. "$INSTALLDIR/venv/bin/activate"
+export PYTHONPATH="$INSTALLDIR"
+exec "$INSTALLDIR/venv/bin/python" "$INSTALLDIR/mksample.py" "$@"
