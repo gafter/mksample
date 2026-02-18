@@ -127,10 +127,8 @@ def stage1_collect_candidates(args):
     exclude_re = _compile_patterns(args.exclude_patterns, "--exclude") if args.exclude_patterns else None
     include_re = _compile_patterns(args.include_patterns, "--include")
     candidates = []
-    inside_zip = False
 
     def visit(path):
-        nonlocal inside_zip
         basename = _basename(path)
         if os.path.isdir(path) and ZIP_SEP not in path:
             if _should_skip_traversal(basename, exclude_re):
@@ -141,7 +139,7 @@ def stage1_collect_candidates(args):
             except OSError:
                 pass
             return
-        if args.zip and not inside_zip and path.lower().endswith(".zip") and os.path.isfile(path):
+        if args.zip and path.lower().endswith(".zip") and os.path.isfile(path):
             if _should_skip_traversal(basename, exclude_re):
                 return
             try:
