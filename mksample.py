@@ -90,6 +90,11 @@ def _basename(path):
     return os.path.basename(path) or "unnamed"
 
 
+def _sanitize_dest_basename(base):
+    """Replace path separators, NUL, and newlines so the destination name is safe."""
+    return base.replace("\0", "_").replace("/", "_").replace("\\", "_").replace("\n", "_").replace("\r", "_")
+
+
 def _should_skip_traversal(basename, exclude_re):
     """Skip directories and zip containers if hidden, @eaDir, or excluded."""
     if basename.startswith(".") or basename == SKIP_BASENAME_DIR:
@@ -219,7 +224,7 @@ def stage3_produce_sample(selected, outputdir, dryrun):
         dn = f"{i // 25:02d}"
         subdir = os.path.join(outputdir, dn)
         os.makedirs(subdir, exist_ok=True)
-        base = _basename(fn)
+        base = _sanitize_dest_basename(_basename(fn))
         dfn = f"{i:04d} {base}"
         dest = os.path.join(subdir, dfn)
         if ZIP_SEP in fn:
