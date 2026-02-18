@@ -155,6 +155,8 @@ def stage1_collect_candidates(args):
                         k = info.file_size if args.size else 1
                         if k < 0:
                             k = 0
+                        if args.size and k <= 0:
+                            continue
                         candidates.append((k, path + ZIP_SEP + member_path))
             except (zipfile.BadZipFile, OSError):
                 pass
@@ -165,6 +167,8 @@ def stage1_collect_candidates(args):
             k = os.path.getsize(path) if args.size else 1
             if k < 0:
                 k = 0
+            if args.size and k <= 0:
+                return
             candidates.append((k, path))
         # else: broken symlink, etc. skip
 
