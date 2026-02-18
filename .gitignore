@@ -9,3 +9,4 @@ tmp/
 .cursor
 .cursorignore
 .cursorindexingignore
+.env
